@@ -5,9 +5,9 @@ const nextConfig = {
   images: {
     unoptimized: true
   },
-  // Jika deploy ke subdirectory (misal: username.github.io/repo-name)
-  // basePath: '/nama-repo',
-  // assetPrefix: '/nama-repo',
+  // Aktifkan untuk GitHub Pages subdirectory
+  basePath: '/kuis-cerdas-cermat',
+  assetPrefix: '/kuis-cerdas-cermat/',
 }
 
 module.exports = nextConfig
