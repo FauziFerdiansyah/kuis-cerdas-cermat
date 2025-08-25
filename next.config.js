@@ -8,10 +8,6 @@ const nextConfig = {
   // Untuk GitHub Pages subdirectory
   basePath: '/kuis-cerdas-cermat',
   assetPrefix: '/kuis-cerdas-cermat/',
-  // Disable server-side features untuk static export
-  experimental: {
-    missingSuspenseWithCSRBailout: false,
-  },
 }
 
 module.exports = nextConfig

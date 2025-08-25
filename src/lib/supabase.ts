@@ -1,7 +1,18 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+// Pengecekan environment variables dengan fallback untuk build time
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
+
+// Validasi hanya di runtime (client-side)
+if (typeof window !== 'undefined') {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    console.error('NEXT_PUBLIC_SUPABASE_URL is required')
+  }
+  if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    console.error('NEXT_PUBLIC_SUPABASE_ANON_KEY is required')
+  }
+}
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
