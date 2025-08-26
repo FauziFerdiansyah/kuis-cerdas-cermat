@@ -61,6 +61,10 @@ function QuizContent() {
     setTimeElapsed(0)
     setIsLoading(true)
     
+    // Reset localStorage flags untuk memastikan data dapat disimpan
+    localStorage.removeItem('resultsSaved')
+    localStorage.removeItem('quizResults')
+    
     // Load questions hanya sekali saat component mount
     loadQuestions(levelFromUrl)
   }, [searchParams, router])
