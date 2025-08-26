@@ -28,10 +28,15 @@ export default function ResultsPage() {
   const [results, setResults] = useState<QuizResults | null>(null)
   const [showAnswerDetails, setShowAnswerDetails] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
   const router = useRouter()
 
-  // Fungsi untuk menyimpan ke database Supabase
+  // Fungsi untuk menyimpan ke database Supabase (fallback jika belum tersimpan)
   const saveToLeaderboard = async (quizResults: QuizResults) => {
+    setIsSaving(true)
+    setSaveError(null)
+    
     try {
       // Konversi answers ke format DetailedPlayerAnswer
       const detailedAnswers = quizResults.answers.map(answer => ({
@@ -63,6 +68,7 @@ export default function ResultsPage() {
 
       if (error) {
         console.error('Error saving to leaderboard:', error)
+        setSaveError('Gagal menyimpan ke leaderboard. Silakan coba lagi.')
         throw error
       }
 
@@ -73,7 +79,9 @@ export default function ResultsPage() {
       
     } catch (error) {
       console.error('Failed to save to leaderboard:', error)
-      // Tampilkan error ke user jika perlu
+      setSaveError('Terjadi kesalahan saat menyimpan data. Silakan coba lagi.')
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -90,9 +98,13 @@ export default function ResultsPage() {
       const parsedResults = JSON.parse(savedResults)
       setResults(parsedResults)
       
-      // Simpan ke database jika belum disimpan
+      // Hanya simpan ke database jika belum disimpan dari quiz page
+      // Ini adalah fallback untuk kasus dimana save dari quiz page gagal
       if (!alreadySaved) {
+        console.log('Data belum tersimpan, mencoba menyimpan ke leaderboard...')
         saveToLeaderboard(parsedResults)
+      } else {
+        console.log('Data sudah tersimpan sebelumnya dari quiz page')
       }
     } catch (error) {
       console.error('Error parsing results:', error)
@@ -189,6 +201,41 @@ export default function ResultsPage() {
               {getScoreMessage(results.score, results.totalQuestions)}
             </p>
           </motion.div>
+
+          {/* Status Saving */}
+          {isSaving && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-center"
+            >
+              <div className="flex items-center justify-center space-x-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                <span className="text-blue-700">Menyimpan hasil ke leaderboard...</span>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Error Saving */}
+          {saveError && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6"
+            >
+              <div className="text-center">
+                <p className="text-red-700 mb-3">{saveError}</p>
+                <Button
+                  onClick={() => saveToLeaderboard(results)}
+                  variant="ghost"
+                  className="text-red-600 hover:text-red-700 hover:bg-red-100"
+                  disabled={isSaving}
+                >
+                  Coba Lagi
+                </Button>
+              </div>
+            </motion.div>
+          )}
 
           {/* Results Card */}
           <motion.div

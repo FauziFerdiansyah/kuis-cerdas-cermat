@@ -348,8 +348,8 @@ function QuizContent() {
       // Calculate score
       const correctAnswers = detailedAnswers.filter(answer => answer.isCorrect).length
       
-      // Save to localStorage
-      localStorage.setItem('quizResults', JSON.stringify({
+      // Prepare quiz results
+      const quizResults = {
         playerName,
         level: selectedLevel,
         score: correctAnswers,
@@ -358,12 +358,39 @@ function QuizContent() {
         answers: detailedAnswers,
         instantCorrection,
         completedAt: new Date().toISOString()
-      }))
+      }
 
-      // Navigate to results
+      // Save to localStorage
+      localStorage.setItem('quizResults', JSON.stringify(quizResults))
+
+      // Save to leaderboard database
+      const { data, error } = await supabase
+        .from('leaderboard')
+        .insert({
+          player_name: playerName,
+          level: selectedLevel as DifficultyLevel,
+          score: correctAnswers,
+          time_taken_seconds: finalTime,
+          answers_detail: detailedAnswers
+        })
+        .select()
+
+      if (error) {
+        console.error('Error saving to leaderboard:', error)
+        // Tetap lanjut ke results meskipun save gagal
+        // User bisa melihat hasil dan data tersimpan di localStorage
+      } else {
+        console.log('Successfully saved to leaderboard:', data)
+        // Tandai bahwa data sudah berhasil disimpan
+        localStorage.setItem('resultsSaved', 'true')
+      }
+
+      // Navigate to results setelah save selesai (berhasil atau gagal)
       router.push('/results')
     } catch (error) {
-      console.error('Error saving results:', error)
+      console.error('Error in final confirmation:', error)
+      // Tetap redirect ke results meskipun ada error
+      router.push('/results')
     }
   }
 
@@ -668,17 +695,24 @@ function QuizContent() {
       </div>
 
       {/* Final Confirmation Modal */}
-      <Modal isOpen={showFinalModal} onClose={() => setShowFinalModal(false)}>
+      <Modal isOpen={showFinalModal} onClose={() => !isNavigating ? setShowFinalModal(false) : undefined}>
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Selesaikan Kuis?</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+            {isNavigating ? 'Menyimpan Hasil...' : 'Selesaikan Kuis?'}
+          </h2>
           <p className="text-gray-600 mb-6">
-            Apakah Anda yakin ingin menyelesaikan kuis ini? Anda tidak dapat mengubah jawaban setelah ini.
+            {isNavigating ? (
+              'Sedang menyimpan hasil kuis Anda ke leaderboard. Mohon tunggu sebentar...'
+            ) : (
+              'Apakah Anda yakin ingin menyelesaikan kuis ini? Anda tidak dapat mengubah jawaban setelah ini.'
+            )}
           </p>
           <div className="flex justify-center space-x-4">
             <Button
               variant="ghost"
               onClick={() => setShowFinalModal(false)}
               disabled={isNavigating}
+              className={isNavigating ? 'opacity-50 cursor-not-allowed' : ''}
             >
               Kembali
             </Button>
@@ -690,7 +724,7 @@ function QuizContent() {
               {isNavigating ? (
                 <>
                   <Loader2 className="animate-spin mr-2" size={16} />
-                  Memproses...
+                  Menyimpan...
                 </>
               ) : (
                 'Lihat Hasil'
