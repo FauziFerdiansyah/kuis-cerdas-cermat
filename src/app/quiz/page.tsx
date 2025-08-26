@@ -555,34 +555,32 @@ function QuizContent() {
                 Soal {currentQuestionIndex + 1} dari {questions.length}
               </span>
               
-              {/* Tombol Navigasi - hanya tampil jika instant correction tidak aktif */}
-              {!instantCorrection && (
-                <div className="flex items-center space-x-2">
-                  {/* Tombol Selesai menggantikan Selanjutnya jika semua pertanyaan sudah dijawab */}
-                  {shouldShowFinishButton() ? (
+              {/* Tombol Navigasi */}
+              <div className="flex items-center space-x-2">
+                {/* Tombol Selesai - tampil jika semua pertanyaan sudah dijawab */}
+                {shouldShowFinishButton() ? (
+                  <Button
+                    variant="primary"
+                    onClick={() => setShowFinalModal(true)}
+                    className="flex items-center space-x-2 min-w-[100px] px-4 py-2 transition-all duration-200 rounded-lg font-heading font-medium"
+                  >
+                    <span>Selesai</span>
+                    <CheckCircle size={16} />
+                  </Button>
+                ) : (
+                  /* Tombol Selanjutnya - hanya tampil jika instant correction tidak aktif dan belum semua pertanyaan dijawab */
+                  !instantCorrection && currentQuestionIndex < questions.length - 1 && (
                     <Button
-                      variant="primary"
-                      onClick={() => setShowFinalModal(true)}
-                      className="flex items-center space-x-2 min-w-[100px] px-4 py-2 transition-all duration-200 rounded-lg font-heading font-medium"
+                      variant="ghost"
+                      onClick={goToNextQuestion}
+                      className="flex items-center space-x-2 min-w-[100px] px-4 py-2 hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 rounded-lg font-heading font-medium"
                     >
-                      <span>Selesai</span>
-                      <CheckCircle size={16} />
+                      <span>Selanjutnya</span>
+                      <ChevronRight size={16} />
                     </Button>
-                  ) : (
-                    /* Tombol Selanjutnya - tampil jika belum semua pertanyaan dijawab */
-                    currentQuestionIndex < questions.length - 1 && (
-                      <Button
-                        variant="ghost"
-                        onClick={goToNextQuestion}
-                        className="flex items-center space-x-2 min-w-[100px] px-4 py-2 hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 rounded-lg font-heading font-medium"
-                      >
-                        <span>Selanjutnya</span>
-                        <ChevronRight size={16} />
-                      </Button>
-                    )
-                  )}
-                </div>
-              )}
+                  )
+                )}
+              </div>
             </div>
 
             {/* Question */}
