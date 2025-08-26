@@ -28,15 +28,11 @@ export default function ResultsPage() {
   const [results, setResults] = useState<QuizResults | null>(null)
   const [showAnswerDetails, setShowAnswerDetails] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
-  const [isSaved, setIsSaved] = useState(false)
   const router = useRouter()
 
   // Fungsi untuk menyimpan ke database Supabase
   const saveToLeaderboard = async (quizResults: QuizResults) => {
     try {
-      setIsSaving(true)
-      
       // Konversi answers ke format DetailedPlayerAnswer
       const detailedAnswers = quizResults.answers.map(answer => ({
         questionId: answer.questionId,
@@ -71,7 +67,6 @@ export default function ResultsPage() {
       }
 
       console.log('Successfully saved to leaderboard:', data)
-      setIsSaved(true)
       
       // Simpan flag bahwa data sudah disimpan
       localStorage.setItem('resultsSaved', 'true')
@@ -79,8 +74,6 @@ export default function ResultsPage() {
     } catch (error) {
       console.error('Failed to save to leaderboard:', error)
       // Tampilkan error ke user jika perlu
-    } finally {
-      setIsSaving(false)
     }
   }
 
@@ -100,8 +93,6 @@ export default function ResultsPage() {
       // Simpan ke database jika belum disimpan
       if (!alreadySaved) {
         saveToLeaderboard(parsedResults)
-      } else {
-        setIsSaved(true)
       }
     } catch (error) {
       console.error('Error parsing results:', error)

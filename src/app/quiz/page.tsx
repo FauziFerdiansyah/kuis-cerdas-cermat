@@ -1,12 +1,11 @@
 'use client'
 
-import { useState, useEffect, useCallback, Suspense } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Clock, CheckCircle, XCircle, ArrowRight, Home, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
+import { Clock, CheckCircle, XCircle, Home, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Layout from '@/components/Layout'
 import Button from '@/components/ui/Button'
-import ProgressBar from '@/components/ui/ProgressBar'
 import Modal from '@/components/ui/Modal'
 import { supabase, Question, DifficultyLevel, CorrectOption, PlayerAnswer, DetailedPlayerAnswer } from '@/lib/supabase'
 
@@ -381,10 +380,6 @@ function QuizContent() {
     }
     
     return 'border-gray-300 bg-white text-gray-800'
-  }
-
-  const isNavigationButtonDisabled = () => {
-    return instantCorrection && !selectedAnswer
   }
 
   if (isLoading) {

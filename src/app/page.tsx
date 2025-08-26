@@ -10,7 +10,6 @@ import { useRouter } from 'next/navigation'
 
 export default function Home() {
   const [instantCorrection, setInstantCorrection] = useState(false)
-  const [showLeaderboard, setShowLeaderboard] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const router = useRouter()
 
