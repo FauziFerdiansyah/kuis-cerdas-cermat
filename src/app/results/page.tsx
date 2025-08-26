@@ -6,7 +6,7 @@ import { Trophy, Clock, Target, Home, RotateCcw, Share2, CheckCircle, XCircle, C
 import { useRouter } from 'next/navigation'
 import Layout from '@/components/Layout'
 import Button from '@/components/ui/Button'
-import { DifficultyLevel, PlayerAnswer } from '@/lib/supabase'
+import { DifficultyLevel, PlayerAnswer, supabase } from '@/lib/supabase'
 
 interface QuizResults {
   playerName: string
@@ -28,10 +28,66 @@ export default function ResultsPage() {
   const [results, setResults] = useState<QuizResults | null>(null)
   const [showAnswerDetails, setShowAnswerDetails] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [isSaved, setIsSaved] = useState(false)
   const router = useRouter()
+
+  // Fungsi untuk menyimpan ke database Supabase
+  const saveToLeaderboard = async (quizResults: QuizResults) => {
+    try {
+      setIsSaving(true)
+      
+      // Konversi answers ke format DetailedPlayerAnswer
+      const detailedAnswers = quizResults.answers.map(answer => ({
+        questionId: answer.questionId,
+        selectedAnswer: answer.selectedAnswer,
+        selectedAnswerText: answer.selectedAnswerText || '',
+        isCorrect: answer.isCorrect,
+        timeSpent: answer.timeSpent,
+        questionText: answer.questionText || '',
+        correctAnswer: answer.correctAnswer || 'A',
+        correctAnswerText: answer.correctAnswerText || '',
+        optionA: answer.optionA || '',
+        optionB: answer.optionB || '',
+        optionC: answer.optionC || '',
+        optionD: answer.optionD || ''
+      }))
+
+      // Insert ke tabel leaderboard
+      const { data, error } = await supabase
+        .from('leaderboard')
+        .insert({
+          player_name: quizResults.playerName,
+          level: quizResults.level as DifficultyLevel,
+          score: quizResults.score,
+          time_taken_seconds: quizResults.timeElapsed,
+          answers_detail: detailedAnswers
+        })
+        .select()
+
+      if (error) {
+        console.error('Error saving to leaderboard:', error)
+        throw error
+      }
+
+      console.log('Successfully saved to leaderboard:', data)
+      setIsSaved(true)
+      
+      // Simpan flag bahwa data sudah disimpan
+      localStorage.setItem('resultsSaved', 'true')
+      
+    } catch (error) {
+      console.error('Failed to save to leaderboard:', error)
+      // Tampilkan error ke user jika perlu
+    } finally {
+      setIsSaving(false)
+    }
+  }
 
   useEffect(() => {
     const savedResults = localStorage.getItem('quizResults')
+    const alreadySaved = localStorage.getItem('resultsSaved') === 'true'
+    
     if (!savedResults) {
       router.push('/')
       return
@@ -40,6 +96,13 @@ export default function ResultsPage() {
     try {
       const parsedResults = JSON.parse(savedResults)
       setResults(parsedResults)
+      
+      // Simpan ke database jika belum disimpan
+      if (!alreadySaved) {
+        saveToLeaderboard(parsedResults)
+      } else {
+        setIsSaved(true)
+      }
     } catch (error) {
       console.error('Error parsing results:', error)
       router.push('/')
@@ -82,8 +145,9 @@ export default function ResultsPage() {
   }
 
   const handlePlayAgain = () => {
-    // Clear previous results
+    // Clear previous results dan flag saved
     localStorage.removeItem('quizResults')
+    localStorage.removeItem('resultsSaved')
     router.push('/')
   }
 
